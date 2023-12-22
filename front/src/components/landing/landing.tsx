@@ -4,6 +4,9 @@ import Stack from '@mui/material/Stack';
 import { Buttons, ButtonBack } from "./landing.ts";
 import { SignUp, LogIn } from "./bridge.tsx";
 import { FadeIn } from "../animations/basic.tsx";
+import Box from '@mui/material/Box';
+import CircularProgress from '@mui/material/CircularProgress';
+
 
 
 
@@ -40,13 +43,14 @@ const ContentStage=(prop:{contentState:number, setContentState:React.Dispatch<Re
             {/* sign up */}
             {prop.contentState === 2 && (
             <FadeIn duration={0.5} ease="easeInOut">
-                    <SignUp></SignUp>
+                    <SignUp setContentState={prop.setContentState}/>
                     <ButtonBack style={{marginBottom:"10px"}} onClick={() => contentSelection(0)}>
                         <ArrowBack/>
                     </ButtonBack>
             </FadeIn>
             )}
 
+            {/* anonymous access */}
             {prop.contentState === 3 && (
             <FadeIn duration={0.5} ease="easeInOut">
                 <ButtonBack style={{marginBottom:"10px"}} onClick={() => contentSelection(0)}>
@@ -55,14 +59,25 @@ const ContentStage=(prop:{contentState:number, setContentState:React.Dispatch<Re
             </FadeIn>
             )}
 
+            {/* loading stage */}
             {prop.contentState === 4 && (
                 <FadeIn duration={0.5} ease="easeInOut">
+                    <Box sx={{ width: '100%' }}>
+                        <CircularProgress />
+                    </Box>
+                </FadeIn>
+            )}
+
+            {/* sign up complete */}
+            {prop.contentState === 5 && (
+                <FadeIn duration={0.5} ease="easeInOut">
+                    <div style={{marginBottom:"15px"}}>Sign up complete</div>
                     <ButtonBack style={{marginBottom:"10px"}} onClick={() => contentSelection(0)}>
-                        <div>Sign up complete</div>
-                        <ArrowBack/>
+                        log in
                     </ButtonBack>
                 </FadeIn>
             )}
+
         </>
     )
 }   

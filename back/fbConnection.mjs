@@ -1,6 +1,6 @@
 import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
-import { getStorage } from "firebase/storage";
+import { getAuth } from "firebase/auth";
+
 
 
 export async function Initialize(){
@@ -15,4 +15,6 @@ export async function Initialize(){
     };
 
     const app = initializeApp(fbConfig);
+    const auth = getAuth(app);
+
 }

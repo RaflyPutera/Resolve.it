@@ -3,17 +3,53 @@ import InputAdornment from "@mui/material/InputAdornment"
 import IconButton from '@mui/material/IconButton';
 import InputLabel from '@mui/material/InputLabel';
 import OutlinedInput from '@mui/material/OutlinedInput';
-import Alert from "@mui/material/Alert";
 import FormControl from "@mui/material/FormControl";
+import FormHelperText from '@mui/material/FormHelperText';
 import Box from '@mui/material/Box';
 import Visibility from "@mui/icons-material/Visibility"
 import VisibilityOff from "@mui/icons-material/VisibilityOff"
 import { Buttons } from "./landing.ts";
-import React, { useState } from "react"
+import React, { Dispatch, useEffect, useState } from "react"
 import axios from "axios";
 
-export default function Password(prop:{id:string,pass:string,setpass:React.Dispatch<React.SetStateAction<string>>}) {
-    const [showPassword, setShowPassword] = React.useState(false);
+type setter = Dispatch<React.SetStateAction<any>>
+
+export function Email(prop:{email:string,setEmail:setter, errval:boolean, setError:setter}){
+    // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailValidator=(e:any)=>{
+        prop.setEmail(e.target.value)
+    }
+    
+    return(
+        <FormControl sx={{mt:1}}>
+            <TextField
+                autoComplete="true"
+                type="email"
+                label="Email" 
+                variant="outlined"
+                value={prop.email}
+                onChange={emailValidator}
+                required
+            />
+        </FormControl>
+    )
+}
+
+export function Password(prop:{id:string,pass:string,setpass:setter, matcher?:any, matchval:boolean}) {
+    const [showPassword, setShowPassword] = useState(false);
+    const [error, setError] = useState(false);
+    // const [mismatch,setMismatch] =useState(false)
+
+    const handlePassValidate=(e:any)=>{
+        prop.setpass(e.target.value)
+        if(prop.pass.length<5){
+            setError(true)
+        }
+        else{
+            setError(false)
+        }
+    }
+
     const handleClickShowPassword = () => setShowPassword((show) => !show);
 
     const handleMouseDownPassword = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -21,7 +57,7 @@ export default function Password(prop:{id:string,pass:string,setpass:React.Dispa
     };
 
     return(
-        <FormControl sx={{mt:2}} variant="outlined" >
+        <FormControl sx={{mt:2}} variant="outlined">
             <InputLabel htmlFor={prop.id}>Password</InputLabel>
             <OutlinedInput
             id={prop.id}
@@ -39,20 +75,36 @@ export default function Password(prop:{id:string,pass:string,setpass:React.Dispa
             }
             label="Password"
             value={prop.pass}
-            onChange={(e)=>{prop.setpass(e.target.value)}}
+            onChange={handlePassValidate}
+            error={error}
+            onBlur={prop.matcher? prop.matcher():undefined}
             required
             />
+            <FormHelperText>
+                { error ? 'Password must be at least 6 characters' : prop.matchval ? 'Password does not match' : '' }
+            </FormHelperText>
         </FormControl>
     )
 }
 
-export const SignUp=()=>{
+export const SignUp=(prop:{setContentState:setter})=>{
     const [email,setEmail]=useState("")
 
 
     const [passMismatch,setPassMismatch]=useState(false)
     const [Pass1,setPass1]=useState("")
     const [Pass2,setPass2]=useState("")
+
+    const [error,setError]=useState(false)
+
+    // const matcher=()=>{
+    //     if(Pass1!==Pass2){setPassMismatch(true)}
+    //     else{setPassMismatch(false)}
+    // }
+    const matcher=useEffect(()=>{
+        if(Pass1!==Pass2){setPassMismatch(true)}
+        else{setPassMismatch(false)}
+    })
 
     const handleSignUp=async (e:any)=>{
         e.preventDefault()
@@ -63,10 +115,14 @@ export const SignUp=()=>{
             setPassMismatch(true)
         }
         else{
+            prop.setContentState(4)
             setPassMismatch(false)
             const password = Pass1||Pass2
             const request=await axios.post(endpoint,{EMAIL:email,PASSWORD:password})
-            console.log(request.data.process)
+            if (request.data.process===true){
+                //show success
+                prop.setContentState(5)
+            }
         }
     }
     return(
@@ -75,25 +131,9 @@ export const SignUp=()=>{
             <form onSubmit={handleSignUp}>
                 <Box sx={{mt:2}}>
                     <FormControl sx={{m:2}} variant="outlined">
-                        {passMismatch && (
-                            <div style={{marginBottom:"12px"}}>
-                                <Alert severity="error">
-                                    <div>Password did not match.</div>
-                                </Alert>
-                            </div>
-                        )}
-                        <TextField
-                        type="email"
-                        label="Email" 
-                        variant="outlined"
-                        value={email}
-                        onChange={(e)=>{
-                            setEmail(e.target.value)
-                        }}
-                        required
-                        />                    
-                        <Password id="pass1" pass={Pass1} setpass={setPass1}/>
-                        <Password id="pass2" pass={Pass2} setpass={setPass2}/>
+                        <Email email={email} setEmail={setEmail} errval={error} setError={setError}/>
+                        <Password id="pass1" pass={Pass1} setpass={setPass1} matcher={matcher} matchval={passMismatch}/>
+                        <Password id="pass2" pass={Pass2} setpass={setPass2} matcher={matcher} matchval={passMismatch}/>
                         <Buttons style={{marginTop:'10px'}} type="submit">Sign Up</Buttons>
                     </FormControl>
                 </Box>
@@ -116,13 +156,6 @@ export const LogIn=()=>{
         <form onSubmit={handleLogin}>
             <Box sx={{mt:2}}>
                 <FormControl sx={{m:2}} variant="outlined">
-                    {/* {passMismatch && (
-                        <div style={{marginBottom:"12px"}}>
-                            <Alert severity="error">
-                                <div>Password did not match.</div>
-                            </Alert>
-                        </div>
-                    )} */}
                     <TextField
                     type="email"
                     label="Email" 
@@ -133,7 +166,7 @@ export const LogIn=()=>{
                     }}
                     required
                     />                    
-                    <Password id="pass" pass={Pass} setpass={setPass}/>
+                    {/* <Password id="pass" pass={Pass} setpass={setPass} setError={setError}/> */}
                     <Buttons style={{marginTop:'10px'}} type="submit">Log in</Buttons>
                 </FormControl>
             </Box>

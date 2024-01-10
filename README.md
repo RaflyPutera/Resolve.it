@@ -1,2 +1,2 @@
 # Resolve.it
-A community driver educational for developer and by developers.
+A community driven educational for developer and by developers.

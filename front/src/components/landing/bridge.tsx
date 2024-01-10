@@ -6,6 +6,7 @@ import OutlinedInput from '@mui/material/OutlinedInput';
 import FormControl from "@mui/material/FormControl";
 import FormHelperText from '@mui/material/FormHelperText';
 import Box from '@mui/material/Box';
+import Alert from "@mui/material/Alert";
 import Visibility from "@mui/icons-material/Visibility"
 import VisibilityOff from "@mui/icons-material/VisibilityOff"
 import { Buttons } from "./landing.ts";
@@ -14,7 +15,7 @@ import axios from "axios";
 
 type setter = Dispatch<React.SetStateAction<any>>
 
-export function Email(prop:{email:string,setEmail:setter, errval:boolean, setError:setter}){
+export function Email(prop:{email:string,setEmail:setter, errval:boolean, setError:setter, fail?:boolean}){
     // const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     const emailValidator=(e:any)=>{
         prop.setEmail(e.target.value)
@@ -30,12 +31,13 @@ export function Email(prop:{email:string,setEmail:setter, errval:boolean, setErr
                 value={prop.email}
                 onChange={emailValidator}
                 required
+                error={prop.fail}
             />
         </FormControl>
     )
 }
 
-export function Password(prop:{id:string,pass:string,setpass:setter, matcher?:any, matchval:boolean}) {
+export function Password(prop:{id:string,pass:string,setpass:setter, matcher?:any, matchval?:boolean}) {
     const [showPassword, setShowPassword] = useState(false);
     const [error, setError] = useState(false);
     // const [mismatch,setMismatch] =useState(false)
@@ -87,29 +89,23 @@ export function Password(prop:{id:string,pass:string,setpass:setter, matcher?:an
     )
 }
 
-export const SignUp=(prop:{setContentState:setter})=>{
+export const SignUp=(prop:{setContentState:setter, fail:boolean, setFail:setter})=>{
     const [email,setEmail]=useState("")
-
-
     const [passMismatch,setPassMismatch]=useState(false)
     const [Pass1,setPass1]=useState("")
     const [Pass2,setPass2]=useState("")
 
     const [error,setError]=useState(false)
 
-    // const matcher=()=>{
-    //     if(Pass1!==Pass2){setPassMismatch(true)}
-    //     else{setPassMismatch(false)}
-    // }
     const matcher=useEffect(()=>{
         if(Pass1!==Pass2){setPassMismatch(true)}
         else{setPassMismatch(false)}
     })
 
-    const handleSignUp=async (e:any)=>{
+    const handleSignUp=(e:any)=>{
         e.preventDefault()
         const endpoint="http://localhost:5172/SignUp"
-        if(Pass1!==Pass2){
+        if(Pass1!==Pass2 || Pass1.length<6 || Pass2.length<6){
             setPass1("")
             setPass2("")
             setPassMismatch(true)
@@ -118,11 +114,20 @@ export const SignUp=(prop:{setContentState:setter})=>{
             prop.setContentState(4)
             setPassMismatch(false)
             const password = Pass1||Pass2
-            const request=await axios.post(endpoint,{EMAIL:email,PASSWORD:password})
-            if (request.data.process===true){
-                //show success
-                prop.setContentState(5)
-            }
+            axios.post(endpoint,{EMAIL:email,PASSWORD:password})
+                .then(response=>{
+                    if (response.data.process===true){
+                        //show success
+                        prop.setContentState(5)
+                    }
+                })
+                .catch(error=>{
+                    const errcode=error.response.status
+                    if(errcode==409){
+                        prop.setContentState(2)
+                        prop.setFail(true)
+                    }
+                })
         }
     }
     return(
@@ -131,7 +136,10 @@ export const SignUp=(prop:{setContentState:setter})=>{
             <form onSubmit={handleSignUp}>
                 <Box sx={{mt:2}}>
                     <FormControl sx={{m:2}} variant="outlined">
-                        <Email email={email} setEmail={setEmail} errval={error} setError={setError}/>
+                        {
+                            prop.fail ? <Alert severity="error">Email already in use</Alert>:''
+                        }
+                        <Email email={email} setEmail={setEmail} errval={error} setError={setError} fail={prop.fail}/>
                         <Password id="pass1" pass={Pass1} setpass={setPass1} matcher={matcher} matchval={passMismatch}/>
                         <Password id="pass2" pass={Pass2} setpass={setPass2} matcher={matcher} matchval={passMismatch}/>
                         <Buttons style={{marginTop:'10px'}} type="submit">Sign Up</Buttons>
@@ -166,7 +174,7 @@ export const LogIn=()=>{
                     }}
                     required
                     />                    
-                    {/* <Password id="pass" pass={Pass} setpass={setPass} setError={setError}/> */}
+                    <Password id="pass" pass={Pass} setpass={setPass}/>
                     <Buttons style={{marginTop:'10px'}} type="submit">Log in</Buttons>
                 </FormControl>
             </Box>

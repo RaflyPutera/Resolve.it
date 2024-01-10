@@ -15,28 +15,23 @@ export default async function routes(fast, options) {
         console.log(email)
     }
     const SignUpHandler=async(request,reply)=>{
-        try{
-            const auth=getAuth();
-            createUserWithEmailAndPassword(auth,email,password)
-                .then((userCredential) => {
-                    const user= userCredential.user;
-                    reply.code(200).send({ success: true, message: 'Data received successfully',process:true });
-
-                })
-                .catch((error) => {
-                    const errorCode = error.code;
-                    const errorMessage = error.message;
-                })
-            // setTimeout(() => {
-            //     console.log("adding delay function")
-            //     reply.code(200).send({ success: true, message: 'Data received successfully',process:true });
-            // }, 1000);
-        }
-        catch(error){
+        try {
+            const auth = getAuth();
+            const credentials = await createUserWithEmailAndPassword(auth, email, password);
+            const user = credentials.user;
+            reply.code(200).send({ success: true, message: 'Data received successfully', process: true });
+        } catch (error) {
             console.error('Error:', error);
-            reply.code(500).send({ success: false, message: 'Internal Server Error' });
+            const errorCode = error.code;
+            const errorMessage = error.message;
+    
+            // Handle specific errors
+            if (errorCode === 'auth/email-already-in-use') {
+                reply.code(409).send({ success: false, message: 'Email is already in use' });
+            } else {
+                reply.code(500).send({ success: false, message: 'Internal Server Error' });
+            }
         }
-        return await reply
     }
     fast.post('/SignUp',{preHandler:SignUpPreHandler},SignUpHandler);
     // fast.route({

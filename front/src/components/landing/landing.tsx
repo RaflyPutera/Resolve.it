@@ -17,6 +17,8 @@ const ContentStage=(prop:{contentState:number, setContentState:React.Dispatch<Re
     const contentSelection = (value:number)=>{
         prop.setContentState(value)
     }
+
+    const [signUpFailed,setSignUpFail]=useState(false)
     return(
         <>  
             {/* initial */}
@@ -43,7 +45,7 @@ const ContentStage=(prop:{contentState:number, setContentState:React.Dispatch<Re
             {/* sign up */}
             {prop.contentState === 2 && (
             <FadeIn duration={0.5} ease="easeInOut">
-                    <SignUp setContentState={prop.setContentState}/>
+                    <SignUp setContentState={prop.setContentState} fail={signUpFailed} setFail={setSignUpFail}/>
                     <ButtonBack style={{marginBottom:"10px"}} onClick={() => contentSelection(0)}>
                         <ArrowBack/>
                     </ButtonBack>

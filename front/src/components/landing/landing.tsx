@@ -1,24 +1,26 @@
-import React, { useEffect, useState } from "react"
+import React, { Dispatch,useEffect, useState } from "react"
 import { motion, useAnimation } from "framer-motion"
 import Stack from '@mui/material/Stack';
-import { Buttons, ButtonBack } from "./landing.ts";
+import { Buttons, ButtonBack } from "./../global/styledComponents.ts";
 import { SignUp, LogIn } from "./bridge.tsx";
 import { FadeIn } from "../animations/basic.tsx";
 import Box from '@mui/material/Box';
 import CircularProgress from '@mui/material/CircularProgress';
 
-
-
-
 import "./landing.css"
 import { ArrowBack } from "@mui/icons-material";
+import { useNavigate } from "react-router-dom";
 
-const ContentStage=(prop:{contentState:number, setContentState:React.Dispatch<React.SetStateAction<number>>})=>{
+type setter = Dispatch<React.SetStateAction<any>>
+
+
+const ContentStage=(prop:{contentState:number, setContentState:setter,})=>{
     const contentSelection = (value:number)=>{
         prop.setContentState(value)
     }
 
     const [signUpFailed,setSignUpFail]=useState(false)
+    const [logInFailed,setLogInFail]=useState(0)
     return(
         <>  
             {/* initial */}
@@ -35,7 +37,7 @@ const ContentStage=(prop:{contentState:number, setContentState:React.Dispatch<Re
             {/* log in */}
             {prop.contentState === 1 && (
             <FadeIn duration={0.5} ease="easeInOut">
-                <LogIn/>
+                <LogIn setContentState={prop.setContentState} fail={logInFailed} setFail={setLogInFail}/>
                     <ButtonBack style={{marginBottom:"10px"}} onClick={() => contentSelection(0)}>
                         <ArrowBack/>
                     </ButtonBack>
@@ -84,7 +86,7 @@ const ContentStage=(prop:{contentState:number, setContentState:React.Dispatch<Re
     )
 }   
 
-const Landing=()=>{
+const Landing=(setuser:any)=>{
     const descList=["for developers.","by developers."]
     const [descStatus,setDescStatus]=useState(0)
     const [isMounted, setIsMounted] = useState(true);
@@ -92,38 +94,42 @@ const Landing=()=>{
     const controls = useAnimation();
     const [contentState,setContentState]=useState(0)
 
-    useEffect(()=>{
-        // setIsMounted(true);
-        const animateNext=async()=>{
-            await controls.start({
-                opacity:1,
-            })
-            await controls.start({opacity:0, transition:{delay:5, ease:'backInOut'}})
-            setDescStatus((prevStatus) => (prevStatus + 1) % descList.length);      
-            setIsMounted(!isMounted);
-        }
-        animateNext()
-        
-        // setIsMounted(true);
-    },[isMounted])
+    const navigate=useNavigate()
 
-    return(
-        <div className="landingContainer">
-            <div style={{gridArea:'head'}}>
-                <div className="title">Resolve.it</div>
-                <div style={{marginBottom:'12px'}} className="description">A community driven educational platform
-                    <motion.span initial={{opacity:1}} animate={controls}>
-                        {' '}{descList[descStatus]}
-                    </motion.span>
+    
+    // console.log(setuser.userState)
+    if(!setuser.userState){
+        useEffect(()=>{
+            // setIsMounted(true);
+            const animateNext=async()=>{
+                await controls.start({
+                    opacity:1,
+                })
+                await controls.start({opacity:0, transition:{delay:10, ease:'backInOut'}})
+                setDescStatus((prevStatus) => (prevStatus + 1) % descList.length);      
+                setIsMounted(!isMounted);
+            }
+            animateNext()
+        },[isMounted])
+    
+        return(
+            <div className="landingContainer">
+                <div style={{gridArea:'head'}}>
+                    <div className="title">Resolve.it</div>
+                    <div style={{marginBottom:'12px'}} className="description">A community driven educational platform
+                        <motion.span initial={{opacity:1}} animate={controls}>
+                            {' '}{descList[descStatus]}
+                        </motion.span>
+                    </div>
                 </div>
+                <div style={{display:'flex',gridArea:'content',justifyContent:'center'}}>
+                    <div className="content">
+                        <ContentStage contentState={contentState} setContentState={setContentState}/>      
+                    </div>   
+                </div>         
+                {/* <LoginButton/>   */}
             </div>
-            <div style={{display:'flex',gridArea:'content',justifyContent:'center'}}>
-                <div className="content">
-                    <ContentStage contentState={contentState} setContentState={setContentState}/>      
-                </div>   
-            </div>         
-            {/* <LoginButton/>   */}
-        </div>
-    )
+        )
+    }else{useEffect(()=>{navigate('/home')})}
 }
 export default Landing

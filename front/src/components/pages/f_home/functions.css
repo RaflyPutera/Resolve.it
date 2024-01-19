@@ -1,0 +1,10 @@
+.wayclass{
+    height:100%;
+    width:100%;
+    border-radius:20px;
+    background-color:white;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+}

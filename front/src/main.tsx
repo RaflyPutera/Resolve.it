@@ -5,6 +5,7 @@ import App from './App.tsx'
 import './index.css'
 
 import { createTheme,ThemeProvider } from '@mui/material/styles';
+import { firebaseApp } from './firebase.tsx';
 
 const main=createTheme({
   palette: {
@@ -21,7 +22,7 @@ const main=createTheme({
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <ThemeProvider theme={main}>
-      <App />
+      <App firebaseApp={firebaseApp} />
     </ThemeProvider>
   </React.StrictMode>
   // <React.StrictMode>

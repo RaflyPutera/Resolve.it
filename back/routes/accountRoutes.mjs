@@ -1,9 +1,11 @@
 import validator from "validator";
-import { getAuth, createUserWithEmailAndPassword } from "firebase/auth";
+import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
+
 
 let email=null;
 let password=null;
 export default async function routes(fast, options) {
+    //SignUp Route
     const SignUpPreHandler=async(request,reply)=>{
         const data=request.body;
         console.log(data)
@@ -34,6 +36,49 @@ export default async function routes(fast, options) {
         }
     }
     fast.post('/SignUp',{preHandler:SignUpPreHandler},SignUpHandler);
+
+    //Login Route
+    const LoginPreHandler=async(request,reply)=>{
+        const data=request.body;
+        console.log(data)
+        email=data.EMAIL;
+        password=data.PASSWORD;
+        if(validator.isEmail(email)){
+            console.log("good email")
+        }
+        console.log(email)
+    }
+
+    const LoginHandler=async(request,reply)=>{
+        console.log(email,password)
+        try{
+            const auth=getAuth();
+            const credentials = await signInWithEmailAndPassword(auth, email, password);
+            const user = credentials.user;
+            auth.currentUser.getIdToken(true)
+            .then(function(idToken) {
+                console.log(idToken);
+            });
+            reply.code(200).send({ success: true, message: 'Login success'});
+                
+        }
+        catch(error){
+            console.log(error)
+            const errorCode = error.code;
+            const errorMessage = error.message;
+            console.error(`Error during login: ${errorCode}`);
+            if (errorCode==='auth/invalid-credential'){
+                reply.code(401).send({ success: false, message: 'Invalid Credentials' });
+            }
+            else{
+                reply.code(500).send({ success: false, message: 'Internal Server Error' });
+            }
+            // Send an error response
+        }
+    }
+    fast.post('/LogIn',{preHandler:LoginPreHandler},LoginHandler);
+
+
     // fast.route({
     //     method: "POST",
     //     url: "/SignUp",
